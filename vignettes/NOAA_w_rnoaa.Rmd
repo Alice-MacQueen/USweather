@@ -15,6 +15,11 @@ knitr::opts_chunk$set(
 noaakey <- Sys.getenv("NOAA_API_KEY")
 ```
 
+# Setup Changes You May Need
+      
+    1. Remove noaakey and replace it with your own key that you get from the NOAA website.
+    2. Make sure you've installed all the packages in the R setup, below.
+
 Many organizations will require you to get an API key and use this key in each of your API requests. This key allows the organization to control API access, including enforcing rate limits per user. API rate limits restrict how often you can request data (e.g., an hourly limit of 1,000 requests per user for NASA APIs).
 
 API keys should be kept private, so if you are writing code that includes an API key, be very careful not to include the actual key in any code made public (including any code in public GitHub repositories). One way to do this is to save the value of your key in a file named .Renviron in your home directory. This file should be a plain text file and must end in a blank line. Once you’ve saved your API key to a global variable in that file (e.g., with a line added to the .Renviron file likeNOAA_API_KEY="abdafjsiopnab038"), you can assign the key value to an R object in an R session using the Sys.getenvfunction (e.g., noaa_api_key <- Sys.getenv("NOAA_API_KEY")), and then use this object (noaa_api_key) anywhere you would otherwise have used the character string with your API key.

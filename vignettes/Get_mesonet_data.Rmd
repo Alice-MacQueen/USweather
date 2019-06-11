@@ -1,0 +1,68 @@
+---
+title: "Getting Mesonet Data"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting Mesonet Data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Setup Changes You May Need
+      
+    1. Remove noaakey and replace it with your own key that you get from the NOAA website.
+    2. Make sure you've installed all the packages in the R setup, below.
+  
+```{r setup}
+library(tidyverse)
+library(httr)
+library(USweather)
+library(lubridate)
+library(data.table)
+meso_url <- "https://mesonet.agron.iastate.edu/cgi-bin/request/asos.py/"
+```
+  
+# Goals
+
+We need two major types of data:
+    
+    1. Daily weather data for each planting location from, say, April 2018 until the present.
+    2. Historical weather data for each location of origin for each switchgrass genotype that we have geocoordinates of collection for.
+    
+These functions and example vignettes should help procure this data.
+    
+# Example Workflow
+
+## 1. Choose the mesonet station.
+```{r}
+Station1 <- pvdiv %>%
+  filter(PLANT_ID == "J001.A")
+
+get_station_info(Station1, loc_key = "PLANT_ID")
+
+Station1$station <- "BKV"
+```
+
+## 2. Make sure your dataset is in the right format for get_mesonet_weather_df
+
+```{r}
+J001_2018 <- get_mesonet_weather(station = Station1$station, year1 = "2018", 
+                                 month1 = "06", day1 = "01", year2 = "2019", 
+                                 month2 = "06", day2 = "01", 
+                                 tz = "America/New_York")
+
+# tz = "America/Chicago"
+# tz = "America/Denver"
+```
+
+
+
+## 3. Run get_mesonet_weather_df
+
+If you have made a dataframe with the required columns station, year1, month1, day1, year2, month2, day2, and tz, you can use this function on that dataframe to return a dataframe of all of the daily weather data for those stations across those dates. 
