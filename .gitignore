@@ -3,3 +3,5 @@
 .RData
 .Ruserdata
 R/hello.R
+data-raw/All_Mesonet_Stations.csv
+inst/doc

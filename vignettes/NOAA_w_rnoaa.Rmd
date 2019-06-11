@@ -1,0 +1,67 @@
+---
+title: "Using rnoaa package"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Using rnoaa package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+noaakey <- Sys.getenv("NOAA_API_KEY")
+```
+
+Many organizations will require you to get an API key and use this key in each of your API requests. This key allows the organization to control API access, including enforcing rate limits per user. API rate limits restrict how often you can request data (e.g., an hourly limit of 1,000 requests per user for NASA APIs).
+
+API keys should be kept private, so if you are writing code that includes an API key, be very careful not to include the actual key in any code made public (including any code in public GitHub repositories). One way to do this is to save the value of your key in a file named .Renviron in your home directory. This file should be a plain text file and must end in a blank line. Once you’ve saved your API key to a global variable in that file (e.g., with a line added to the .Renviron file likeNOAA_API_KEY="abdafjsiopnab038"), you can assign the key value to an R object in an R session using the Sys.getenvfunction (e.g., noaa_api_key <- Sys.getenv("NOAA_API_KEY")), and then use this object (noaa_api_key) anywhere you would otherwise have used the character string with your API key.
+
+
+```{r setup}
+library(tidyverse)
+# library(USweather)
+library(httr)
+library(rnoaa)
+library(lubridate)
+```
+
+# Example for J001.A
+
+ Find stations that have recent data for this latitude and longitude.
+
+Search for stations using a bounding box, w/ lat/long of the SW corner, then of NE corner, using the ncdc_stations function and specifying an extent. The following code will generate a bounding box. Then you can pick one of the stations - those with the id "GHCND" are usually good candidates, so long as they have data in the date range that you are looking for - and use the ncdc() function to find data for that stationid for that range of dates.
+
+```{r}
+Station1 <- pvdiv %>%
+    filter(PLANT_ID == "J001.A") %>%
+    summarize(Lat1 = mean(Latitude, na.rm = TRUE) - 0.1,
+            Long1 = mean(Longitude, na.rm = TRUE) - 0.1,
+            Lat2 = Lat1 + 0.2,
+            Long2 = Long1 + 0.2)
+Stations <- ncdc_stations(extent = c(Station1$Lat1, Station1$Long1, Station1$Lat2, Station1$Long2), token = noaakey)
+
+stations_2018 <- Stations$data %>%
+  mutate(mindate = as_date(mindate),
+         maxdate = as_date(maxdate)) %>%
+  filter(mindate <= "2008-01-01") %>%
+  filter(maxdate >= "2019-06-01")
+
+J001_2018 <- ncdc(datasetid = "GHCND", stationid = stations_2018$id[1],
+                  startdate = "2018-06-01", enddate = "2019-06-01", limit = 500,
+                  token = noaakey)
+
+J001_2018$data
+```
+
+
+```{r finding other locations}
+noaa_locs <- ncdc_locs(datasetid='GHCND', locationcategoryid = 'ST', 
+                       limit = 100, token = noaakey)
+noaa_locs$data
+noaa_loc_cats <- ncdc_locs_cats(datasetid='GHCND')
+noaa_loc_cats$data
+```
+
